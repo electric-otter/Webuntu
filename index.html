@@ -3,50 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VNC Port Configuration</title>
+    <title>Ubuntu in the Web - WebVNC Setup</title>
 </head>
 <body>
-    <h1>Configure VNC Port</h1>
-    <form id="vncPortForm">
-        <label for="vncPort">Enter VNC Port:</label>
-        <input type="number" id="vncPort" name="vncPort" min="1024" max="65535" value="5900">
-        <button type="submit">Start VNC</button>
+    <h1>Run Ubuntu in the Web with WebVNC</h1>
+    <p>Follow these simple steps to run Ubuntu in your browser using WebVNC (noVNC) in a Docker container.</p>
+
+    <h2>1. Install Docker and Dependencies</h2>
+    <p>To run Ubuntu in the browser, you first need to install Docker. Follow the instructions for your operating system:</p>
+
+    <h3>For Windows</h3>
+    <ul>
+        <li>Download Docker Desktop for Windows from the official site: <a href="https://www.docker.com/products/docker-desktop">Docker Desktop</a></li>
+        <li>Run the installer and follow the on-screen instructions.</li>
+        <li>After installation, restart your machine.</li>
+        <li>Ensure Docker is running by checking the Docker icon in the system tray.</li>
+        <li>For WSL (Windows Subsystem for Linux) support, follow the instructions here: <a href="https://docs.docker.com/desktop/windows/wsl/">Docker WSL setup</a></li>
+    </ul>
+
+    <h3>For macOS</h3>
+    <ul>
+        <li>Download Docker Desktop for macOS from the official site: <a href="https://www.docker.com/products/docker-desktop">Docker Desktop</a></li>
+        <li>Run the installer and follow the instructions.</li>
+        <li>Once installed, Docker should automatically start. If not, you can launch it from the Applications folder.</li>
+    </ul>
+
+    <h3>For Linux (Ubuntu/Debian-based)</h3>
+    <ul>
+        <li>Open a terminal and run the following commands to install Docker:</li>
+        <pre><code>sudo apt update
+sudo apt install docker.io
+sudo systemctl enable --now docker
+sudo usermod -aG docker $USER</code></pre>
+        <li>Once installed, check Docker status with:</li>
+        <pre><code>sudo systemctl status docker</code></pre>
+        <li>Log out and log back in to enable Docker without needing `sudo` for commands.</li>
+    </ul>
+
+    <h2>3. Customize VNC Settings</h2>
+    <form id="vncSettingsForm">
+        <label for="vncPassword">Set VNC Password:</label>
+        <input type="password" id="vncPassword" name="vncPassword" placeholder="Enter password" required><br><br>
+
+        <label for="vncPort">Set VNC Port:</label>
+        <input type="number" id="vncPort" name="vncPort" min="1024" max="65535" value="6901" required><br><br>
+
+        <button type="submit">Save Settings</button>
     </form>
 
-    <h2>VNC Player</h2>
+    <h2>4. Access Ubuntu in the Web</h2>
+    <p>Once your Docker container is running, open the following URL in your browser:</p>
+    <p id="vncLink"><strong>http://localhost:6901</strong></p>
+    <p>Enter the password you set to access the Ubuntu desktop in your browser.</p>
+
+    <h2>5. Start the VNC Client</h2>
     <div id="vncPlayerContainer">
-        <button id="startVncPlayerBtn" onclick="startVncPlayer()">Start VNC Player</button>
+        <button id="startVncPlayerBtn" onclick="startVncPlayer()">Start VNC Client</button>
     </div>
 
     <script>
         // Handle the form submission
-        document.getElementById("vncPortForm").addEventListener("submit", function(event) {
+        document.getElementById("vncSettingsForm").addEventListener("submit", function(event) {
             event.preventDefault();
+
+            const vncPassword = document.getElementById("vncPassword").value;
             const vncPort = document.getElementById("vncPort").value;
 
-            // Make an API call to update the Docker container with the selected port
-            fetch("/set-vnc-port", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ vncPort })
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log("VNC Port updated", data);
-                alert("VNC port updated! You can now connect.");
-            })
-            .catch(error => {
-                console.error("Error updating VNC port", error);
-            });
+            // Save the user's VNC settings (password and port)
+            localStorage.setItem('vncPassword', vncPassword);
+            localStorage.setItem('vncPort', vncPort);
+
+            // Update the link with the new port
+            document.getElementById("vncLink").innerHTML = `<strong>http://localhost:${vncPort}</strong>`;
+            alert(`VNC Settings Saved! You can now access Ubuntu at http://localhost:${vncPort}`);
         });
 
-        // Function to start the VNC player
+        // Function to guide user to WebVNC client
         function startVncPlayer() {
-            const vncPort = document.getElementById("vncPort").value;
-            const vncUrl = `vnc://localhost:${vncPort}`;
-            alert(`Use ${vncPort} in https://electric-otter.github.io/webuvnc/ to use your Webuntu instance.`);
+            const vncPort = localStorage.getItem('vncPort') || '6901';  // Default to 6901 if not set
+            const vncUrl = `http://localhost:${vncPort}`;
+            alert(`Open ${vncUrl} in your browser to access Ubuntu.`);
         }
     </script>
 </body>

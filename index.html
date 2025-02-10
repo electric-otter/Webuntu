@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VNC Port Configuration</title>
+</head>
+<body>
+    <h1>Configure VNC Port</h1>
+    <form id="vncPortForm">
+        <label for="vncPort">Enter VNC Port:</label>
+        <input type="number" id="vncPort" name="vncPort" min="1024" max="65535" value="5900">
+        <button type="submit">Start VNC</button>
+    </form>
+
+    <h2>VNC Player</h2>
+    <div id="vncPlayerContainer">
+        <button id="startVncPlayerBtn" onclick="startVncPlayer()">Start VNC Player</button>
+    </div>
+
+    <script>
+        // Handle the form submission
+        document.getElementById("vncPortForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            const vncPort = document.getElementById("vncPort").value;
+
+            // Make an API call to update the Docker container with the selected port
+            fetch("/set-vnc-port", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ vncPort })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("VNC Port updated", data);
+                alert("VNC port updated! You can now connect.");
+            })
+            .catch(error => {
+                console.error("Error updating VNC port", error);
+            });
+        });
+
+        // Function to start the VNC player
+        function startVncPlayer() {
+            const vncPort = document.getElementById("vncPort").value;
+            const vncUrl = `vnc://localhost:${vncPort}`;
+            alert(`Use ${vncPort} in https://electric-otter.github.io/webuvnc/ to use your Webuntu instance.`);
+        }
+    </script>
+</body>
+</html>
